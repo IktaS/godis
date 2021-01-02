@@ -9,11 +9,12 @@ import (
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "You get home!")
+	vars := mux.Vars(r)
+	fmt.Fprintf(w, "Welcome home %s", vars["name"])
 }
 
 func main() {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", homeHandler)
+	router.HandleFunc("/{name}", homeHandler)
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
