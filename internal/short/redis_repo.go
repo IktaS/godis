@@ -6,31 +6,38 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-// RedisRepo defines what's needed in a redis repository
-type RedisRepo struct {
+// redisRepo defines what's needed in a redis repository
+type redisRepo struct {
 	rdb *redis.Client
+	rop *redis.Options
 	ctx context.Context
 }
 
+// NewRedisRepo creates a new redis repository
+func NewRedisRepo(ctx context.Context, rop *redis.Options) *Repo {
+	var repo Repo
+	repo = &redisRepo{
+		rdb: nil,
+		rop: rop,
+		ctx: ctx,
+	}
+	return &repo
+}
+
 // Init initialize RedisRepo
-func (r *RedisRepo) Init() error {
-	r.ctx = context.Background()
-	r.rdb = redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
-		DB:       0,
-	})
+func (r *redisRepo) Init() error {
+	r.rdb = redis.NewClient(r.rop)
 	return nil
 }
 
 // Save saves a link data to redis database
-func (r *RedisRepo) Save(l *Link) error {
+func (r *redisRepo) Save(l *Link) error {
 	err := r.rdb.Set(r.ctx, l.key, l.val, 0).Err()
 	return err
 }
 
 // Get gets a data from redis database
-func (r *RedisRepo) Get(key string) (string, error) {
+func (r *redisRepo) Get(key string) (string, error) {
 	val, err := r.rdb.Get(r.ctx, key).Result()
 	return val, err
 }

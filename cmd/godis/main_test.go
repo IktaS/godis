@@ -21,10 +21,10 @@ func Test_homeHandler(t *testing.T) {
 		{
 			name: "string parameter get request",
 			setup: func() *http.Request {
-				return httptest.NewRequest("GET", "/imam", nil)
+				return httptest.NewRequest("GET", "/", nil)
 			},
 			expectedCode: 200,
-			expectedBody: "Welcome home imam",
+			expectedBody: "Got Home!",
 		},
 	}
 	for _, tt := range tests {
@@ -32,7 +32,7 @@ func Test_homeHandler(t *testing.T) {
 			req := tt.setup()
 			rec := httptest.NewRecorder()
 			router := mux.NewRouter()
-			router.HandleFunc("/{name}", homeHandler)
+			router.HandleFunc("/", homeHandler)
 			router.ServeHTTP(rec, req)
 
 			res := rec.Result()
@@ -45,6 +45,38 @@ func Test_homeHandler(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.expectedBody, string(b))
+		})
+	}
+}
+
+func Test_saveHandler(t *testing.T) {
+	tests := []struct {
+		name         string
+		setup        func() *http.Request
+		expectedCode int
+		expectedBody string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// saveHandler(tt.args.w, tt.args.r, tt.args.repo)
+		})
+	}
+}
+
+func Test_getHandler(t *testing.T) {
+	tests := []struct {
+		name         string
+		setup        func() *http.Request
+		expectedCode int
+		expectedBody string
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// getHandler(tt.args.w, tt.args.r, tt.args.repo)
 		})
 	}
 }

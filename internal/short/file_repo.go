@@ -8,14 +8,24 @@ import (
 	"strings"
 )
 
-// FileRepo is a repository that stores Link in a file
-type FileRepo struct {
+// fileRepo is a repository that stores Link in a file
+type fileRepo struct {
 	db   string
 	file *os.File
 }
 
+// NewFileRepo makes a new file repository
+func NewFileRepo(db string) *Repo {
+	var repo Repo
+	repo = &fileRepo{
+		db:   db,
+		file: nil,
+	}
+	return &repo
+}
+
 // Init intialize FileRepo
-func (f *FileRepo) Init() error {
+func (f *fileRepo) Init() error {
 	file, err := os.OpenFile(f.db, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		return err
@@ -25,7 +35,7 @@ func (f *FileRepo) Init() error {
 }
 
 // Save saves a short link to a file
-func (f *FileRepo) Save(l *Link) error {
+func (f *fileRepo) Save(l *Link) error {
 	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.key)); !isValid {
 		return fmt.Errorf("Invalid Key")
 	}
@@ -40,7 +50,7 @@ func (f *FileRepo) Save(l *Link) error {
 }
 
 // Get searches for a key in database and returns the value
-func (f *FileRepo) Get(key string) (string, error) {
+func (f *fileRepo) Get(key string) (string, error) {
 	scanner := bufio.NewScanner(f.file)
 	for scanner.Scan() {
 		line := scanner.Text()

@@ -29,11 +29,8 @@ func TestFileRepo_Init(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &FileRepo{
-				db:   tt.fields.db,
-				file: tt.fields.file,
-			}
-			if err := f.Init(); (err != nil) != tt.wantErr {
+			f := NewFileRepo(tt.fields.db)
+			if err := (*f).Init(); (err != nil) != tt.wantErr {
 				t.Errorf("FileRepo.Init() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -310,12 +307,9 @@ func TestFileRepo_Save(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &FileRepo{
-				db:   tt.fields.db,
-				file: tt.fields.file,
-			}
-			f.Init()
-			err := f.Save(tt.args.l)
+			f := NewFileRepo(tt.fields.db)
+			(*f).Init()
+			err := (*f).Save(tt.args.l)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
@@ -368,19 +362,9 @@ func TestFileRepo_Get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &FileRepo{
-				db:   tt.fields.db,
-				file: tt.fields.file,
-			}
-			f.Init()
-			got, err := f.Get(tt.args.key)
-			// if (err != nil) != tt.wantErr {
-			// 	t.Errorf("FileRepo.Get() error = %v, wantErr %v", err, tt.wantErr)
-			// 	return
-			// }
-			// if got != tt.want {
-			// 	t.Errorf("FileRepo.Get() = %v, want %v", got, tt.want)
-			// }
+			f := NewFileRepo(tt.fields.db)
+			(*f).Init()
+			got, err := (*f).Get(tt.args.key)
 			if tt.wantErr {
 				assert.Error(t, err)
 				return
