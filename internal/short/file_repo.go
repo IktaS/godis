@@ -36,10 +36,10 @@ func (f *fileRepo) Init() error {
 
 // Save saves a short link to a file
 func (f *fileRepo) Save(l *Link) error {
-	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.key)); !isValid {
+	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.Key)); !isValid {
 		return fmt.Errorf("Invalid Key")
 	}
-	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.val)); !isValid {
+	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.Val)); !isValid {
 		return fmt.Errorf("Invalid Value")
 	}
 	_, err := f.file.Write([]byte(l.String() + "\n"))

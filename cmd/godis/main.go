@@ -22,6 +22,7 @@ func main() {
 func routes(r *short.Repo) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", homeHandler)
+	router.HandleFunc("/save", useRepo(saveHandler, r))
 	router.HandleFunc("/{key}", useRepo(getHandler, r))
 	return router
 }
@@ -41,7 +42,7 @@ func getHandler(w http.ResponseWriter, r *http.Request, repo *short.Repo) {
 	val, err := (*repo).Get(vars["key"])
 	if err != nil {
 		log.Printf("Error getting from repo: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusNoContent)
 		return
 	}
 

@@ -32,7 +32,7 @@ func (r *redisRepo) Init() error {
 
 // Save saves a link data to redis database
 func (r *redisRepo) Save(l *Link) error {
-	err := r.rdb.Set(r.ctx, l.key, l.val, 0).Err()
+	err := r.rdb.Set(r.ctx, l.Key, l.Val, 0).Err()
 	return err
 }
 
