@@ -1,18 +1,31 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 
 	"github.com/IktaS/godis/internal/short"
+	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	repo := short.NewFileRepo("db.txt")
-	err := (*repo).Init()
+	dbInt, err := strconv.Atoi(os.Getenv("DB_INT"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	repo := short.NewRedisRepo(context.Background(), &redis.Options{
+		Addr:     os.Getenv("DB_ADDR"),
+		Username: os.Getenv("DB_USERNAME"),
+		Password: os.Getenv("DB_PASSWORD"),
+		DB:       dbInt,
+	})
+	err = (*repo).Init()
 	if err != nil {
 		log.Fatal("cannot initialize repostory")
 	}
