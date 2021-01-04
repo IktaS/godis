@@ -76,6 +76,6 @@ func saveHandler(w http.ResponseWriter, r *http.Request, repo *short.Repo) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusAccepted)
+	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Data saved!")
 }
