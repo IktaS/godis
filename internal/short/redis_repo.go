@@ -2,6 +2,8 @@ package short
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -32,6 +34,12 @@ func (r *redisRepo) Init() error {
 
 // Save saves a link data to redis database
 func (r *redisRepo) Save(l *Link) error {
+	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.Key)); !isValid {
+		return fmt.Errorf("Invalid Key")
+	}
+	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.Val)); !isValid {
+		return fmt.Errorf("Invalid Value")
+	}
 	err := r.rdb.Set(r.ctx, l.Key, l.Val, 0).Err()
 	return err
 }
