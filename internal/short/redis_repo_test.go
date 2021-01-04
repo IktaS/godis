@@ -10,33 +10,30 @@ import (
 )
 
 func Test_redisRepo_Save(t *testing.T) {
-	srv, err := miniredis.Run()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer srv.Close()
 	tests := []struct {
 		name     string
-		setup    func(*testing.T) *redisRepo
-		teardown func(*testing.T, *redisRepo)
+		setup    func(*testing.T, *miniredis.Miniredis) *redisRepo
+		teardown func(*testing.T, *miniredis.Miniredis)
 		link     *Link
 		wantErr  bool
 	}{
 		// TODO: Add test cases.
 		{
 			name: "valid key pair",
-			setup: func(*testing.T) *redisRepo {
+			setup: func(t *testing.T, s *miniredis.Miniredis) *redisRepo {
 				repo := &redisRepo{
 					rdb: nil,
 					rop: &redis.Options{
-						Addr: srv.Addr(),
+						Addr: s.Addr(),
 					},
 					ctx: context.Background(),
 				}
 				repo.rdb = redis.NewClient(repo.rop)
 				return repo
 			},
-			teardown: func(t *testing.T, f *redisRepo) {
+			teardown: func(t *testing.T, s *miniredis.Miniredis) {
+				s.FlushAll()
+				s.Close()
 				return
 			},
 			link: &Link{
@@ -48,26 +45,25 @@ func Test_redisRepo_Save(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := tt.setup(t)
-			err := r.Save(tt.link)
+			srv, err := miniredis.Run()
+			if err != nil {
+				t.Fatal(err)
+			}
+			r := tt.setup(t, srv)
+			err = r.Save(tt.link)
 			if tt.wantErr {
 				assert.Error(t, err)
 			}
-			tt.teardown(t, r)
+			tt.teardown(t, srv)
 		})
 	}
 }
 
 func Test_redisRepo_Get(t *testing.T) {
-	srv, err := miniredis.Run()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer srv.Close()
 	tests := []struct {
 		name     string
-		setup    func(*testing.T) *redisRepo
-		teardown func(*testing.T, *redisRepo)
+		setup    func(*testing.T, *miniredis.Miniredis) *redisRepo
+		teardown func(*testing.T, *miniredis.Miniredis)
 		key      string
 		want     string
 		wantErr  bool
@@ -75,20 +71,21 @@ func Test_redisRepo_Get(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			name: "valid key pair",
-			setup: func(*testing.T) *redisRepo {
+			setup: func(t *testing.T, s *miniredis.Miniredis) *redisRepo {
 				repo := &redisRepo{
 					rdb: nil,
 					rop: &redis.Options{
-						Addr: srv.Addr(),
+						Addr: s.Addr(),
 					},
 					ctx: context.Background(),
 				}
 				repo.rdb = redis.NewClient(repo.rop)
-				srv.Set("key", "val")
+				s.Set("key", "val")
 				return repo
 			},
-			teardown: func(t *testing.T, f *redisRepo) {
-				srv.Del("key")
+			teardown: func(t *testing.T, s *miniredis.Miniredis) {
+				s.FlushAll()
+				s.Close()
 				return
 			},
 			key:     "key",
@@ -98,13 +95,17 @@ func Test_redisRepo_Get(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := tt.setup(t)
+			srv, err := miniredis.Run()
+			if err != nil {
+				t.Fatal(err)
+			}
+			r := tt.setup(t, srv)
 			got, err := r.Get(tt.key)
 			if tt.wantErr {
 				assert.Error(t, err)
 			}
 			assert.Equal(t, tt.want, got, tt.name)
-			tt.teardown(t, r)
+			tt.teardown(t, srv)
 		})
 	}
 }
