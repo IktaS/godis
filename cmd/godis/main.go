@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -12,9 +14,11 @@ import (
 	"github.com/IktaS/godis/internal/short"
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load(".env")
 	dbInt, err := strconv.Atoi(os.Getenv("DB_INT"))
 	if err != nil {
 		log.Fatal(err)
@@ -29,11 +33,18 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot initialize repostory")
 	}
-	log.Fatal(http.ListenAndServe(":8080", routes(repo)))
+	http.ListenAndServe(":8080", routes(repo))
 }
 
 func routes(r *short.Repo) *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
+	router := mux.NewRouter()
+	var dir string
+
+	flag.StringVar(&dir, "dir", "./web/assets/", "the directory to serve files from. Defaults to the current dir")
+	flag.Parse()
+
+	router.HandleFunc("/favicon.ico", doNothing)
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
 	router.HandleFunc("/", homeHandler)
 	router.HandleFunc("/save", useRepo(saveHandler, r))
 	router.HandleFunc("/{key}", useRepo(getHandler, r))
@@ -47,8 +58,10 @@ func useRepo(fn func(http.ResponseWriter, *http.Request, *short.Repo), repo *sho
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Got Home!")
+	renderTemplate(w, "home", nil)
 }
+
+func doNothing(w http.ResponseWriter, r *http.Request) {}
 
 func getHandler(w http.ResponseWriter, r *http.Request, repo *short.Repo) {
 	vars := mux.Vars(r)
@@ -59,8 +72,9 @@ func getHandler(w http.ResponseWriter, r *http.Request, repo *short.Repo) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(val)
+	// w.Header().Set("Content-Type", "application/json")
+	// json.NewEncoder(w).Encode(val)
+	http.Redirect(w, r, val, http.StatusFound)
 }
 
 func saveHandler(w http.ResponseWriter, r *http.Request, repo *short.Repo) {
@@ -78,4 +92,13 @@ func saveHandler(w http.ResponseWriter, r *http.Request, repo *short.Repo) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Data saved!")
+}
+
+var templates = template.Must(template.ParseFiles("./web/html/home.html"))
+
+func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
