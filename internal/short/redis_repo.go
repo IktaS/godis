@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -40,7 +41,7 @@ func (r *redisRepo) Save(l *Link) error {
 	if isValid, _ := regexp.Match("([^\\|\\[\\]])", []byte(l.Val)); !isValid {
 		return fmt.Errorf("Invalid Value")
 	}
-	err := r.rdb.Set(r.ctx, l.Key, l.Val, 0).Err()
+	err := r.rdb.Set(r.ctx, l.Key, l.Val, time.Hour*24*30).Err()
 	return err
 }
 
