@@ -81,12 +81,14 @@ func saveHandler(w http.ResponseWriter, r *http.Request, repo *short.Repo) {
 	var shortlink short.Link
 	err := json.NewDecoder(r.Body).Decode(&shortlink)
 	if err != nil {
+		log.Printf("Error decoding : %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = (*repo).Save(&shortlink)
 	if err != nil {
+		log.Printf("Error saving : %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
